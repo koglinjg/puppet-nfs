@@ -17,6 +17,60 @@ class nfs::params {
   ### Application related parameters
 
   $mode = 'server'
+  $service_status = true
+  $process_args = ''
+  $process_user = 'root'
+  $config_dir = ''
+  $config_file = '/etc/exports'
+  $config_file_mode = '0644'
+  $config_file_owner = 'root'
+  $config_file_group = 'root'
+  $pid_file = '/var/run/nfs.pid'
+  $data_dir = '/etc/nfs'
+  $log_dir = '/var/log/nfs'
+  $log_file = '/var/log/nfs/nfs.log'
+
+  notify{"
+  osfamily: ............. ${::osfamily}
+  operatingsystem: ...... ${::operatingsystem}
+  operatingsystemrelease: ${::operatingsystemrelease}
+  ": }
+
+
+  case $::osfamily {
+    'Debian', 'Ubuntu', 'Mint': {
+      $package = 'nfs-common'
+      $package_server = 'nfs-kernel-server'
+      $service = 'nfs-kernel-server'
+      $process = 'nfs'
+      $config_file_init = '/etc/default/nfs'
+    }
+    'RedHat': {
+      case $::operatingsystem {
+        'RedHat', 'CentOS', 'OracleLinux', 'Scientific': {
+          if (versioncmp($::operatingsystemrelease, '7.0') < 0) {
+            $package = 'nfs-utils'
+            $package_server = ''
+            $service = 'nfs'
+            $process = 'nfsd'
+            $config_file_init = '/etc/sysconfig/nfs'
+          }
+          else {
+            $package = 'nfs'
+            $package_server = ''
+            $service = 'nfs'
+            $process = 'nfsd'
+            $config_file_init = '/etc/sysconfig/nfs'
+          }
+        }
+        default: { fail("unsupported os ${::operatingsystem}") }
+      }
+    }
+    default: { fail("unsupported os ${::operatingsystem}") }
+  }
+
+
+/*
 
   $package = $::operatingsystem ? {
     /(?i:Debian|Ubuntu|Mint)/ => 'nfs-common',
@@ -34,41 +88,10 @@ class nfs::params {
     default                         => 'nfs',
   }
 
-  $service_status = $::operatingsystem ? {
-    default => true,
-  }
 
   $process = $::operatingsystem ? {
     /(?i:RedHat|Centos|Scientific)/ => 'nfsd',
     default                         => 'nfs',
-  }
-
-  $process_args = $::operatingsystem ? {
-    default => '',
-  }
-
-  $process_user = $::operatingsystem ? {
-    default => 'root',
-  }
-
-  $config_dir = $::operatingsystem ? {
-    default => '',
-  }
-
-  $config_file = $::operatingsystem ? {
-    default => '/etc/exports',
-  }
-
-  $config_file_mode = $::operatingsystem ? {
-    default => '0644',
-  }
-
-  $config_file_owner = $::operatingsystem ? {
-    default => 'root',
-  }
-
-  $config_file_group = $::operatingsystem ? {
-    default => 'root',
   }
 
   $config_file_init = $::operatingsystem ? {
@@ -76,21 +99,7 @@ class nfs::params {
     default                   => '/etc/sysconfig/nfs',
   }
 
-  $pid_file = $::operatingsystem ? {
-    default => '/var/run/nfs.pid',
-  }
-
-  $data_dir = $::operatingsystem ? {
-    default => '/etc/nfs',
-  }
-
-  $log_dir = $::operatingsystem ? {
-    default => '/var/log/nfs',
-  }
-
-  $log_file = $::operatingsystem ? {
-    default => '/var/log/nfs/nfs.log',
-  }
+*/
 
   $port = '2049'
   $protocol = 'tcp'
